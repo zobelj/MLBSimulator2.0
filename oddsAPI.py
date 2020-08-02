@@ -35,7 +35,7 @@ sport_key = 'baseball_mlb'
 odds_response = requests.get('https://api.the-odds-api.com/v3/odds', params={
     'api_key': api_key,
     'sport': sport_key,
-    'region': 'uk', # uk | us | eu | au
+    'region': 'us', # uk | us | eu | au
     'mkt': 'h2h' # h2h | spreads | totals
 })
 
