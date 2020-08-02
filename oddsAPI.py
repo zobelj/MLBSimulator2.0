@@ -18,16 +18,6 @@ if not sports_json['success']:
         sports_json['msg']
     )
 
-else:
-    print()
-    print(
-        'Successfully got {} sports'.format(len(sports_json['data'])),
-        'Here\'s the first sport:'
-    )
-    print(sports_json['data'][0])
-
-
-
 # To get odds for a sepcific sport, use the sport key from the last request
 #   or set sport to "upcoming" to see live and upcoming across all sports
 sport_key = 'baseball_mlb'
@@ -47,18 +37,7 @@ if not odds_json['success']:
     )
 
 else:
-    # odds_json['data'] contains a list of live and 
-    #   upcoming events and odds for different bookmakers.
-    # Events are ordered by start time (live events are first)
-    print()
-    print(
-        'Successfully got {} events'.format(len(odds_json['data'])),
-        'Here\'s the first event:'
-    )
-    print(odds_json['data'][0])
-
     # Check your usage
-    print()
     print('Remaining requests', odds_response.headers['x-requests-remaining'])
     print('Used requests', odds_response.headers['x-requests-used'])
 
