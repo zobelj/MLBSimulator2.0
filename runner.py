@@ -5,7 +5,7 @@ from lineupAPI import updateJSON
 import json
 
 # list of strings containing each team name
-teamList = ['Select team...', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
+teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
 locations = ['Arizona','Atlanta','Baltimore','Boston','Chicago','Cincinnati','Cleveland','Colorado','Detroit','Houston','KansasCity','LosAngeles','Miami','Milwaukee','Minnesota','NewYork','Oakland','Philadelphia','Pittsburgh','SanDiego','SanFrancisco','Seattle','St.Louis','TampaBay','Texas','Toronto','Washington']
 
 # get today's date
@@ -24,7 +24,7 @@ def updateLineups():
     updateJSON(date)
 
 # print lineups for selected team on selected date
-def printLineups():
+def displayLineups():
     updateLineups()
     lineups_json = json.load(open('data/lineups.json'))
     away_team = cleanTeamName(awayTeamVar.get())
@@ -32,10 +32,12 @@ def printLineups():
     away_lineup = lineups_json[away_team]
     home_lineup = lineups_json[home_team]
 
-    print(f'{away_team} lineup: ')
-    print(away_lineup)
-    print(f'\n{home_team} lineup: ')
-    print(home_lineup)
+    awayListBox.delete(0, tk.END)
+    homeListBox.delete(0, tk.END)
+
+    for i in range(9):
+        awayListBox.insert(i+1, ' {}. '.format(i+1) + away_lineup[i])
+        homeListBox.insert(i+1, ' {}. '.format(i+1) + home_lineup[i])
 
     awayPitcherVar.set(away_lineup[-1])
     homePitcherVar.set(home_lineup[-1])
@@ -57,14 +59,25 @@ def cleanTeamName(name):
         name = name.replace(location, '').replace(' ', '')
 
     return(name)
-# date selection and lineup updater
-#tk.Button(master, text="  Update Lineups  ", relief='groove', overrelief='sunken', command=updateLineups).grid(row=0, column=0, sticky='nsew')
+
+def clearAll():
+    awayListBox.delete(0, tk.END)
+    homeListBox.delete(0, tk.END)
+    awayPitcherVar.set('')
+    homePitcherVar.set('')
+    awayTeamVar.set(teamList[0])
+    homeTeamVar.set(teamList[0])
+
+# date selection
 tk.Label(text=' Select date ').grid(row=0, column=0)
 cal = DateEntry(master, width=12, year=int(today[0]), month=int(today[1]), day=int(today[2]), background='darkblue', forground='white', borderwidth=2)
 cal.grid(row=0, column=1)
 
-# print lineups of selected team for selected date
-tk.Button(master, text="Print Lineups", relief='groove', overrelief='sunken', command=printLineups).grid(row=2, column=0, sticky='nsew')
+# display lineups of selected team for selected date
+tk.Button(master, text="Display Lineups", relief='groove', overrelief='sunken', command=displayLineups).grid(row=2, column=0, sticky='nsew')
+
+# clears all entry boxes
+tk.Button(master, text="Clear All", relief='groove', overrelief='sunken', command=clearAll).grid(row=6, column=4, sticky='nsew')
 
 # away team entries
 awayTeamVar = tk.StringVar(master)
@@ -76,7 +89,7 @@ tk.Label(master, text=" Away Pitcher ", bg='dodger blue').grid(row=4, column=0, 
 cAwayTeam = tk.ttk.Combobox(master, textvariable=awayTeamVar, values=teamList)
 cAwayTeam.grid(row=3, column=1)
 cAwayPitcher = tk.Entry(master, relief = 'groove', textvariable=awayPitcherVar)
-cAwayPitcher.grid(row=4, column=1)
+cAwayPitcher.grid(row=4, column=1, sticky='we')
 
 # home team entries
 homeTeamVar = tk.StringVar(master)
@@ -88,15 +101,25 @@ tk.Label(master, text=" Home Pitcher ", bg='tomato2').grid(row=4, column=2, padx
 cHomeTeam = tk.ttk.Combobox(master, textvariable=homeTeamVar, values=teamList)
 cHomeTeam.grid(row=3, column=3)
 cHomePitcher = tk.Entry(master, relief = 'groove', textvariable=homePitcherVar)
-cHomePitcher.grid(row=4, column=3)
+cHomePitcher.grid(row=4, column=3, sticky='we')
 
-# custom lineups checkbox
+# away lineup display
+awayListBox = tk.Listbox(master)
+awayListBox.grid(row=5, column=1, sticky='we')
+awayListBox.config(height=9)
+
+# home lineup display
+homeListBox = tk.Listbox(master)
+homeListBox.grid(row=5, column=2, sticky='we')
+homeListBox.config(height=9)
+
+'''
 tk.Label(text='Custom Lineups', padx=3).grid(row=3, column=4)
 tk.Checkbutton(master, onvalue=1, offvalue=0).grid(row=3, column=5)
-
+'''
 # quit button
 quitB = tk.Button(master, relief='groove', text='  Quit  ', overrelief='sunken', command=master.destroy)
-quitB.grid(row=5, column=4, sticky='nsew')
+quitB.grid(row=6, column=5, sticky='nsew')
 
 # center window and run
 center_window(650, 500)
