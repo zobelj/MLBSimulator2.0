@@ -72,7 +72,7 @@ def saveToJSON(myDict):
         json.dump(myDict, outfile)
 
 # download tweets and extract all found lineups
-def updateJSON(date):
+def updateLineupsJSON(date):
 
     getTweets(date)
     all_lineups_dict = getAllLineups(date)
