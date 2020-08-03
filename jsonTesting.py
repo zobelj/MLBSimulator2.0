@@ -41,5 +41,5 @@ for i in range(len(home_teams)-1):
 matchup_odds = {matchups[i]: odds_lists[i] for i in range(len(matchups))}
 
 #print matchup for game 6 and its available odds
-print(matchups[0])
-print(matchup_odds[matchups[0]])
+print(matchups[3])
+print(matchup_odds[matchups[3]])
