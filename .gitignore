@@ -1,2 +1,4 @@
 env/
 .vscode/
+data/lineups.json
+data/odds.json
