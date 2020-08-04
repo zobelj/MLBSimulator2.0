@@ -1,5 +1,7 @@
 from ctypes import windll, pointer, wintypes
 windll.shcore.SetProcessDpiAwareness(1)
+user32 = windll.user32
+width, height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 import tkinter as tk
 from tkcalendar import DateEntry
@@ -7,6 +9,7 @@ from datetime import date
 from lineupAPI import updateLineupsJSON
 from matchupsAPI import updateMatchupsJSON
 import json
+import webbrowser
 
 # list of strings containing each team name
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
@@ -21,13 +24,16 @@ master.title('MLB Simulator 2.0')
 
 # functions
 # update lineups to selected dates
-def updateData(_):
+def updateData():
     updateMatchupsJSON(cal.get_date())
     year, month, day = str(cal.get_date()).split('-')
     year = year[2:]
     date =str(month + '/' + day + '/' + year)
     updateLineupsJSON(date)
     displayMatchups()
+
+def updateDataHelper(_):
+    updateData()
 
 # print lineups for selected team on selected date
 def displayLineups():
@@ -44,7 +50,7 @@ def displayLineups():
         away_lineup = lineups_json[away_team]
         awayPitcherVar.set(' ' + away_lineup[-1])
         for i in range(9):
-            awayListbox.insert(i+1, ' {}. '.format(i+1) + away_lineup[i])
+            awayListbox.insert(i+1, ' ' + away_lineup[i])
     except:
         awayPitcherVar.set('Error loading lineup.')
 
@@ -52,10 +58,11 @@ def displayLineups():
         home_lineup = lineups_json[home_team]
         homePitcherVar.set(' ' + home_lineup[-1])
         for i in range(9):
-            homeListbox.insert(i+1, ' {}. '.format(i+1) + home_lineup[i])
+            homeListbox.insert(i+1, ' ' + home_lineup[i])
     except:
         homePitcherVar.set('Error loading lineup.')
 
+# displays the day's matchups in matchups listbox
 def displayMatchups():
     matchups_json = json.load(open('data/matchups.json'))
     matchups_away = list(matchups_json['away'].keys())
@@ -65,14 +72,24 @@ def displayMatchups():
     for i in range(len(matchups_json['away'])):
         matchupsListbox.insert(i+1, matchups_away[i].title() + ' at ' + matchups_home[i].title())
 
-def selectMatchup(_):
-    away_selected = matchupsListbox.get(matchupsListbox.curselection()).split('at')[0].strip()
-    home_selected = matchupsListbox.get(matchupsListbox.curselection()).split('at')[1].strip()
-    away_selected_index = [i for i, s in enumerate(teamList) if away_selected in s]
-    home_selected_index = [i for i, s in enumerate(teamList) if home_selected in s]
+# displays lineups for matchup selected from matchups listbox
+def selectMatchup(event):
+    thisWidget = event.widget
+    away_selected, home_selected = thisWidget.get(int(thisWidget.curselection()[0])).split(' at ')
+    away_selected_index = [i for i, s in enumerate(teamList) if away_selected.strip() in s]
+    home_selected_index = [i for i, s in enumerate(teamList) if home_selected.strip() in s]
     awayTeamVar.set(teamList[away_selected_index[0]])
     homeTeamVar.set(teamList[home_selected_index[0]])
     displayLineups()
+
+def goToBREF(event):
+    thisWidget = event.widget
+    name_index = int(thisWidget.curselection()[0])
+
+    name = thisWidget.get(name_index)[1:].strip().lower()
+    first, last = name.split(' ')[:2]
+    url = 'https://www.baseball-reference.com/players/{}/{}{}01.shtml'.format(last[0], last[:5], first[:2])
+    webbrowser.open(url)
 
 # remove location from team name
 def cleanTeamName(name):
@@ -88,29 +105,27 @@ def clearAll():
     homePitcherVar.set('')
     awayTeamVar.set(teamList[0])
     homeTeamVar.set(teamList[0])
-    matchupsListbox.delete(0, tk.END)
 
 # center the GUI
-def center_window(width, height):
+def center_window():
     # get screen width and height
     screen_width = master.winfo_screenwidth()
     screen_height = master.winfo_screenheight()
-
     # calculate position x and y coordinates
-    x = (screen_width/2) - (width/2)
-    y = (screen_height/3) - (height/2)
-    master.geometry('%dx%d+%d+%d' % (width, height, x, y))
+    x = (screen_width/2)  - (width/4)
+    y = (screen_height/3) - (height/4)
+    master.geometry('%dx%d+%d+%d' % (width/2.5, height/2.5, x, y))
 
 
 # frame containing update data button and date selection
 buttonFrame = tk.Frame(master)
 buttonFrame.grid(row=0, column=0, sticky='w', padx=10)
 
-#tk.Button(buttonFrame, text='Update Data', relief='groove', overrelief='sunken', command=updateData).grid(row=0, column=0, sticky='nsew')
-tk.Label(buttonFrame, text=' Select date ').grid(row=0, column=0)
+tk.Button(buttonFrame, text='Update Data', relief='groove', overrelief='sunken', command=updateData).grid(row=0, column=0, sticky='nsew', pady=(4,0))
+#tk.Label(buttonFrame, text=' Select date ').grid(row=0, column=0)
 cal = DateEntry(buttonFrame, width=12, year=int(today[0]), month=int(today[1]), day=int(today[2]), background='darkblue', forground='white', borderwidth=2)
 cal.grid(row=1, column=0)
-cal.bind('<<DateEntrySelected>>', updateData)
+cal.bind('<<DateEntrySelected>>', updateDataHelper)
 
 
 # frame containing display lineup button and away/home team info
@@ -150,11 +165,13 @@ homePitcher.grid(row=2, column=3, sticky='we', padx=4)
 awayListbox = tk.Listbox(awayFrame)
 awayListbox.grid(row=3, column=1, sticky='we', padx=4)
 awayListbox.config(height=9)
+awayListbox.bind('<Double-1>', goToBREF)
 
 # home lineup display
 homeListbox = tk.Listbox(homeFrame)
 homeListbox.grid(row=3, column=3, sticky='we', padx=4)
 homeListbox.config(height=9)
+homeListbox.bind('<Double-1>', goToBREF)
 
 
 # frame containing day's matchup and display button
@@ -173,6 +190,6 @@ tk.Button(exitFrame, text="Clear All", relief='groove', overrelief='sunken', com
 tk.Button(exitFrame, relief='groove', text='  Quit  ', overrelief='sunken', command=master.destroy).pack(side='right')
 
 # center window and run
-center_window(1750, 1000)
-updateData('foo')
+center_window()
+#updateData('foo')
 tk.mainloop()
