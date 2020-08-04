@@ -1,3 +1,6 @@
+from ctypes import windll, pointer, wintypes
+windll.shcore.SetProcessDpiAwareness(1)
+
 import tkinter as tk
 from tkcalendar import DateEntry
 from datetime import date
@@ -18,7 +21,7 @@ master.title('MLB Simulator 2.0')
 
 # functions
 # update lineups to selected dates
-def updateData():
+def updateData(_):
     updateMatchupsJSON(cal.get_date())
     year, month, day = str(cal.get_date()).split('-')
     year = year[2:]
@@ -32,19 +35,26 @@ def displayLineups():
     homeListbox.delete(0, tk.END)
     awayPitcherVar.set('')
     homePitcherVar.set('')
-    
+
     lineups_json = json.load(open('data/lineups.json'))
     away_team = cleanTeamName(awayTeamVar.get())
     home_team = cleanTeamName(homeTeamVar.get())
-    away_lineup = lineups_json[away_team]
-    home_lineup = lineups_json[home_team]
 
-    for i in range(9):
-        awayListbox.insert(i+1, ' {}. '.format(i+1) + away_lineup[i])
-        homeListbox.insert(i+1, ' {}. '.format(i+1) + home_lineup[i])
+    try:
+        away_lineup = lineups_json[away_team]
+        awayPitcherVar.set(' ' + away_lineup[-1])
+        for i in range(9):
+            awayListbox.insert(i+1, ' {}. '.format(i+1) + away_lineup[i])
+    except:
+        awayPitcherVar.set('Error loading lineup.')
 
-    awayPitcherVar.set(' ' + away_lineup[-1])
-    homePitcherVar.set(' ' + home_lineup[-1])
+    try:
+        home_lineup = lineups_json[home_team]
+        homePitcherVar.set(' ' + home_lineup[-1])
+        for i in range(9):
+            homeListbox.insert(i+1, ' {}. '.format(i+1) + home_lineup[i])
+    except:
+        homePitcherVar.set('Error loading lineup.')
 
 def displayMatchups():
     matchups_json = json.load(open('data/matchups.json'))
@@ -55,7 +65,7 @@ def displayMatchups():
     for i in range(len(matchups_json['away'])):
         matchupsListbox.insert(i+1, matchups_away[i].title() + ' at ' + matchups_home[i].title())
 
-def selectMatchup():
+def selectMatchup(_):
     away_selected = matchupsListbox.get(matchupsListbox.curselection()).split('at')[0].strip()
     home_selected = matchupsListbox.get(matchupsListbox.curselection()).split('at')[1].strip()
     away_selected_index = [i for i, s in enumerate(teamList) if away_selected in s]
@@ -96,17 +106,17 @@ def center_window(width, height):
 buttonFrame = tk.Frame(master)
 buttonFrame.grid(row=0, column=0, sticky='w', padx=10)
 
-tk.Button(buttonFrame, text='Update Data', relief='groove', overrelief='sunken', command=updateData).grid(row=0, column=0, sticky='nsew')
-#tk.Label(buttonFrame, text=' Select date ').grid(row=1, column=1)
+#tk.Button(buttonFrame, text='Update Data', relief='groove', overrelief='sunken', command=updateData).grid(row=0, column=0, sticky='nsew')
+tk.Label(buttonFrame, text=' Select date ').grid(row=0, column=0)
 cal = DateEntry(buttonFrame, width=12, year=int(today[0]), month=int(today[1]), day=int(today[2]), background='darkblue', forground='white', borderwidth=2)
 cal.grid(row=1, column=0)
+cal.bind('<<DateEntrySelected>>', updateData)
 
 
 # frame containing display lineup button and away/home team info
 teamsFrame = tk.Frame(master)
 teamsFrame.grid(row=1, column=1)
-tk.Button(teamsFrame, text="Display Lineups", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw')
-tk.Button(teamsFrame, text=" Use Selected ", relief='groove', overrelief='sunken', command=selectMatchup).grid(row=0, column=1, sticky='nsw')
+tk.Button(teamsFrame, text="Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
 
 # away team entries
 awayFrame = tk.Frame(teamsFrame)
@@ -115,12 +125,12 @@ awayTeamVar = tk.StringVar(master)
 awayTeamVar.set(teamList[0])
 awayPitcherVar = tk.StringVar(master)
 
-tk.Label(awayFrame, text="    Away Team    ", bg='dodger blue').grid(row=1, column=0, padx=1, sticky='nsew')
+tk.Label(awayFrame, text="     Away Team     ", bg='dodger blue').grid(row=1, column=0, padx=1, sticky='nsew')
 tk.Label(awayFrame, text="  Away Pitcher  ", bg='dodger blue').grid(row=2, column=0, padx=1, sticky='nsew')
 awayTeam = tk.ttk.Combobox(awayFrame, textvariable=awayTeamVar, values=teamList)
-awayTeam.grid(row=1, column=1)
+awayTeam.grid(row=1, column=1, padx=4)
 awayPitcher = tk.Entry(awayFrame, relief = 'groove', textvariable=awayPitcherVar)
-awayPitcher.grid(row=2, column=1, sticky='we')
+awayPitcher.grid(row=2, column=1, sticky='we', padx=4)
 
 # home team entries
 homeFrame = tk.Frame(teamsFrame)
@@ -132,30 +142,30 @@ homePitcherVar = tk.StringVar(master)
 tk.Label(homeFrame, text="    Home Team    ", bg='tomato2').grid(row=1, column=2, padx=1, sticky='nsew')
 tk.Label(homeFrame, text="   Home Pitcher   ", bg='tomato2').grid(row=2, column=2, padx=1, sticky='nsew')
 homeTeam = tk.ttk.Combobox(homeFrame, textvariable=homeTeamVar, values=teamList)
-homeTeam.grid(row=1, column=3)
+homeTeam.grid(row=1, column=3, padx=4)
 homePitcher = tk.Entry(homeFrame, relief = 'groove', textvariable=homePitcherVar)
-homePitcher.grid(row=2, column=3, sticky='we')
+homePitcher.grid(row=2, column=3, sticky='we', padx=4)
 
 # away lineup display
 awayListbox = tk.Listbox(awayFrame)
-awayListbox.grid(row=3, column=1, sticky='we')
+awayListbox.grid(row=3, column=1, sticky='we', padx=4)
 awayListbox.config(height=9)
 
 # home lineup display
 homeListbox = tk.Listbox(homeFrame)
-homeListbox.grid(row=3, column=3, sticky='we')
+homeListbox.grid(row=3, column=3, sticky='we', padx=4)
 homeListbox.config(height=9)
 
 
 # frame containing day's matchup and display button
 matchupsFrame = tk.Frame(master)
 matchupsFrame.grid(row=1, column=0, rowspan=2, pady=12, padx=10)
-tk.Button(matchupsFrame, text='Display Matchups', relief='groove', overrelief='sunken', command=displayMatchups).grid(row=0, column=0, pady=2, sticky='nsew')
+#tk.Button(matchupsFrame, text='Display Matchups', relief='groove', overrelief='sunken', command=displayMatchups).grid(row=0, column=0, pady=2, sticky='nsew')
 matchupsListbox = tk.Listbox(matchupsFrame)
-matchupsListbox.grid(row=1, column=0)
+matchupsListbox.grid(row=2, column=0)
 matchupsListbox.config(height=15)
 
-
+matchupsListbox.bind('<Double-1>', selectMatchup)
 # frame containing quit and clear all button
 exitFrame = tk.Frame(master)
 exitFrame.grid(row=2, column=1, sticky='e')
@@ -163,6 +173,6 @@ tk.Button(exitFrame, text="Clear All", relief='groove', overrelief='sunken', com
 tk.Button(exitFrame, relief='groove', text='  Quit  ', overrelief='sunken', command=master.destroy).pack(side='right')
 
 # center window and run
-center_window(750, 450)
-updateData()
+center_window(1750, 1000)
+updateData('foo')
 tk.mainloop()
