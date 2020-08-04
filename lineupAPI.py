@@ -18,8 +18,6 @@ def getTweets(date):
     since_date = str((base_date_obj - datetime.timedelta(days=1)).date())
     until_date = str((base_date_obj + datetime.timedelta(days=1)).date())
 
-    print(since_date)
-    print(until_date)
     tweetCriteria = got.manager.TweetCriteria().setUsername(username).setSince(since_date).setUntil(until_date)
     tweets = got.manager.TweetManager.getTweets(tweetCriteria)
     user_tweets = [[tweet.date, tweet.text] for tweet in tweets]
