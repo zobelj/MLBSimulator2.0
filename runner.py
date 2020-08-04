@@ -24,17 +24,20 @@ def updateData():
     year = year[2:]
     date =str(month + '/' + day + '/' + year)
     updateLineupsJSON(date)
+    displayMatchups()
 
 # print lineups for selected team on selected date
 def displayLineups():
+    awayListbox.delete(0, tk.END)
+    homeListbox.delete(0, tk.END)
+    awayPitcherVar.set('')
+    homePitcherVar.set('')
+    
     lineups_json = json.load(open('data/lineups.json'))
     away_team = cleanTeamName(awayTeamVar.get())
     home_team = cleanTeamName(homeTeamVar.get())
     away_lineup = lineups_json[away_team]
     home_lineup = lineups_json[home_team]
-
-    awayListbox.delete(0, tk.END)
-    homeListbox.delete(0, tk.END)
 
     for i in range(9):
         awayListbox.insert(i+1, ' {}. '.format(i+1) + away_lineup[i])
@@ -51,6 +54,15 @@ def displayMatchups():
     matchupsListbox.delete(0, tk.END)
     for i in range(len(matchups_json['away'])):
         matchupsListbox.insert(i+1, matchups_away[i].title() + ' at ' + matchups_home[i].title())
+
+def selectMatchup():
+    away_selected = matchupsListbox.get(matchupsListbox.curselection()).split('at')[0].strip()
+    home_selected = matchupsListbox.get(matchupsListbox.curselection()).split('at')[1].strip()
+    away_selected_index = [i for i, s in enumerate(teamList) if away_selected in s]
+    home_selected_index = [i for i, s in enumerate(teamList) if home_selected in s]
+    awayTeamVar.set(teamList[away_selected_index[0]])
+    homeTeamVar.set(teamList[home_selected_index[0]])
+    displayLineups()
 
 # remove location from team name
 def cleanTeamName(name):
@@ -94,6 +106,7 @@ cal.grid(row=1, column=0)
 teamsFrame = tk.Frame(master)
 teamsFrame.grid(row=1, column=1)
 tk.Button(teamsFrame, text="Display Lineups", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw')
+tk.Button(teamsFrame, text=" Use Selected ", relief='groove', overrelief='sunken', command=selectMatchup).grid(row=0, column=1, sticky='nsw')
 
 # away team entries
 awayFrame = tk.Frame(teamsFrame)
@@ -151,4 +164,5 @@ tk.Button(exitFrame, relief='groove', text='  Quit  ', overrelief='sunken', comm
 
 # center window and run
 center_window(750, 450)
+updateData()
 tk.mainloop()
