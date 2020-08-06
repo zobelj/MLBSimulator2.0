@@ -1,7 +1,7 @@
 import json
 
 # load json file into memory
-f = open('odds.json')
+f = open('data/odds.json')
 data_json = json.load(f)
 
 # variable declarations

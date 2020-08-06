@@ -10,8 +10,8 @@ from APIs.lineupAPI import updateLineupsJSON
 from APIs.matchupsAPI import updateMatchupsJSON
 import json
 import webbrowser
-import runPrediction
-import simulate
+import simulations.runPrediction as runPrediction
+import simulations.simulate as simulate
 
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
 locations = ['Arizona','Atlanta','Baltimore','Boston','Chicago','Cincinnati','Cleveland','Colorado','Detroit','Houston','KansasCity','LosAngeles','Miami','Milwaukee','Minnesota','NewYork','Oakland','Philadelphia','Pittsburgh','SanDiego','SanFrancisco','Seattle','St.Louis','TampaBay','Texas','Toronto','Washington']
@@ -85,6 +85,7 @@ def selectMatchup(event):
     awayTeamVar.set(teamList[away_selected_index[0]])
     homeTeamVar.set(teamList[home_selected_index[0]])
     displayLineups()
+    simulateGame()
 
 def goToBREF(event):
     thisWidget = event.widget
@@ -116,6 +117,42 @@ def simulateGame():
     awayProbVar.set("{:.2f} %".format(away_win_prob))
     homeProbVar.set("{:.2f} %".format(home_win_prob))    
 
+def simulateAll():
+    matchups = matchupsListbox.get(0, tk.END)
+    lineups_json = json.load(open('data/lineups.json'))
+    matchups_json = json.load(open("data/matchups.json"))
+    matchups_away = list(matchups_json['away'].keys())
+    matchups_home = list(matchups_json['away'].values())
+
+    for i in range(len(matchups)):
+        away_selected = matchups_away[i].title().replace('D-Backs', 'Diamondbacks').replace("A's", "Athletics")
+        home_selected = matchups_home[i].title().replace('D-Backs', 'Diamondbacks').replace("A's", "Athletics")
+
+        away_selected_index = [i for i, s in enumerate(teamList) if away_selected.strip() in s]
+        home_selected_index = [i for i, s in enumerate(teamList) if home_selected.strip() in s]
+
+        away_abbrev = name_to_abbrev[teamList[away_selected_index[0]].lower().replace(' ', '')]
+        home_abbrev = name_to_abbrev[teamList[home_selected_index[0]].lower().replace(' ', '')]
+
+        try:
+            away_names = lineups_json[away_selected]
+            home_names = lineups_json[home_selected]
+            away_pitcher = away_names[-1]
+            home_pitcher = home_names[-1]
+            away_lineup = away_names[:-1]
+            home_lineup = home_names[:-1]
+            away_RG = runPrediction.getPredictedRG(away_abbrev, away_lineup, home_abbrev, home_pitcher)
+            home_RG = runPrediction.getPredictedRG(home_abbrev, home_lineup, away_abbrev, away_pitcher)
+        except:
+            away_RG = runPrediction.getPredictedRG_Basic(away_abbrev, home_abbrev)
+            home_RG = runPrediction.getPredictedRG_Basic(home_abbrev, away_abbrev)
+
+        away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0)
+
+        print("{}: {:.2f}%".format(away_abbrev, away_win_prob))
+        print("{}: {:.2f}%".format(home_abbrev, home_win_prob))
+        print()
+
 # remove location from team name
 def cleanTeamName(name):
     for location in locations:
@@ -142,14 +179,19 @@ def center_window():
     master.geometry('%dx%d+%d+%d' % (width/2.5, height/2.5, x, y))
 
 # frame containing update data button and date selection
-buttonFrame = tk.Frame(master)
-buttonFrame.grid(row=0, column=0, sticky='w', padx=10)
+dateFrame = tk.Frame(master)
+dateFrame.grid(row=0, column=0, sticky='w', padx=10)
 
-tk.Button(buttonFrame, text='Update Data', relief='groove', overrelief='sunken', command=updateData).grid(row=0, column=0, sticky='nsew', pady=(4,0))
+tk.Button(dateFrame, text='Update Data', relief='groove', overrelief='sunken', command=updateData).grid(row=0, column=0, sticky='nsew', pady=(4,0))
 #tk.Label(buttonFrame, text=' Select date ').grid(row=0, column=0)
-cal = DateEntry(buttonFrame, width=12, year=int(today[0]), month=int(today[1]), day=int(today[2]), background='darkblue', forground='white', borderwidth=2)
+cal = DateEntry(dateFrame, width=12, year=int(today[0]), month=int(today[1]), day=int(today[2]), background='darkblue', forground='white', borderwidth=2)
 cal.grid(row=1, column=0)
 cal.bind('<<DateEntrySelected>>', updateDataHelper)
+
+simFrame = tk.Frame(master)
+simFrame.grid(row=0, column=1, sticky='nw')
+tk.Button(simFrame, text = "Simulate All", relief='groove', overrelief='sunken', command=simulateAll).grid(row=0, column=0, sticky='nw', pady=4)
+tk.Button(simFrame, text = "Simulate Game", relief='groove', overrelief='sunken', command=simulateGame).grid(row=0, column=1, sticky='nw', pady=4)
 
 # frame containing display lineup button and away/home team info
 teamsFrame = tk.Frame(master)
@@ -162,7 +204,7 @@ awayTeamVar = tk.StringVar(master)
 awayTeamVar.set(teamList[0])
 awayPitcherVar = tk.StringVar(master)
 
-tk.Button(awayFrame, text="Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
+tk.Button(awayFrame, text=" Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
 awayProbVar = tk.StringVar(master)
 awayProbVar.set('')
 tk.Label(awayFrame, textvariable=awayProbVar).grid(row=0, column=1)
@@ -181,7 +223,7 @@ homeTeamVar = tk.StringVar(master)
 homeTeamVar.set(teamList[0])
 homePitcherVar = tk.StringVar(master)
 
-tk.Button(homeFrame, text = "Simulate Game", relief='groove', overrelief='sunken', command=simulateGame).grid(row=0, column=0, sticky='nsw', pady=4)
+#tk.Button(homeFrame, text = "Simulate Game", relief='groove', overrelief='sunken', command=simulateGame).grid(row=0, column=0, sticky='nsw', pady=4)
 homeProbVar = tk.StringVar(master)
 homeProbVar.set('')
 tk.Label(homeFrame, textvariable=homeProbVar).grid(row=0, column=1)

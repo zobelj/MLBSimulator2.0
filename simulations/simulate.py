@@ -4,10 +4,10 @@ numRuns = 30
 
 def simulateMatchup(away_RG, home_RG, hFA):
 
-    if(hFA):
+    if(hFA != 0):
         away_prob = simulateGame(away_RG, -1)
         home_prob = simulateGame(home_RG, 1)
-    elif(not hFA):
+    elif(hFA == 0):
         away_prob = simulateGame(away_RG, 0)
         home_prob = simulateGame(home_RG, 0)
 
@@ -32,9 +32,13 @@ def simulateMatchup(away_RG, home_RG, hFA):
                 ties.append(probMatrix[i][j])
 
     tiesProb = sum(ties) * 100
-    team1WinProb = sum(team1Wins) * 100 + 0.53 * tiesProb
-    team2WinProb = sum(team2Wins) * 100 + 0.47 * tiesProb
-    
+    if(hFA == 0):
+        team1WinProb = sum(team1Wins) * 100 + 0.5 * tiesProb
+        team2WinProb = sum(team2Wins) * 100 + 0.5 * tiesProb
+    else:
+        team1WinProb = sum(team1Wins) * 100 + 0.53 * tiesProb
+        team2WinProb = sum(team2Wins) * 100 + 0.47 * tiesProb
+
     extra = 100 - (team1WinProb + team2WinProb)
 
     ratio1 = team1WinProb / (team1WinProb + team2WinProb)
@@ -43,9 +47,7 @@ def simulateMatchup(away_RG, home_RG, hFA):
     team1WinProb += extra * ratio1
     team2WinProb += extra * ratio2
 
-
     return(team1WinProb, team2WinProb)
-
 
 def simulateGame(team_RG, hFA):
 
