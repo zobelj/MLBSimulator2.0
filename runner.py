@@ -6,13 +6,12 @@ width, height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 import tkinter as tk
 from tkcalendar import DateEntry
 from datetime import date
-from lineupAPI import updateLineupsJSON
-from matchupsAPI import updateMatchupsJSON
+from APIs.lineupAPI import updateLineupsJSON
+from APIs.matchupsAPI import updateMatchupsJSON
 import json
 import webbrowser
-from teamStatsAPI import get2020Data
+from APIs.teamStatsAPI import get2020Data
 
-# list of strings containing each team name
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
 locations = ['Arizona','Atlanta','Baltimore','Boston','Chicago','Cincinnati','Cleveland','Colorado','Detroit','Houston','KansasCity','LosAngeles','Miami','Milwaukee','Minnesota','NewYork','Oakland','Philadelphia','Pittsburgh','SanDiego','SanFrancisco','Seattle','St.Louis','TampaBay','Texas','Toronto','Washington']
 
