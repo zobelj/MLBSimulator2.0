@@ -10,10 +10,12 @@ from APIs.lineupAPI import updateLineupsJSON
 from APIs.matchupsAPI import updateMatchupsJSON
 import json
 import webbrowser
-from APIs.teamStatsAPI import get2020Data
+import runPrediction
+import simulate
 
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
 locations = ['Arizona','Atlanta','Baltimore','Boston','Chicago','Cincinnati','Cleveland','Colorado','Detroit','Houston','KansasCity','LosAngeles','Miami','Milwaukee','Minnesota','NewYork','Oakland','Philadelphia','Pittsburgh','SanDiego','SanFrancisco','Seattle','St.Louis','TampaBay','Texas','Toronto','Washington']
+name_to_abbrev = {'arizonadiamondbacks': 'ARI', 'atlantabraves': 'ATL', 'baltimoreorioles': 'BAL', 'bostonredsox': 'BOS', 'chicagowhitesox': 'CHW', 'chicagocubs': 'CHC', 'cincinnatireds': 'CIN', 'clevelandindians': 'CLE', 'coloradorockies': 'COL', 'detroittigers': 'DET', 'houstonastros': 'HOU', 'kansascityroyals': 'KCR','losangelesangels': 'LAA', 'losangelesdodgers': 'LAD','miamimarlins': 'MIA', 'milwaukeebrewers': 'MIL', 'minnesotatwins': 'MIN', 'newyorkyankees': 'NYY', 'newyorkmets': 'NYM','oaklandathletics': 'OAK', 'philadelphiaphillies': 'PHI', 'pittsburghpirates': 'PIT','sandiegopadres': 'SDP', 'sanfranciscogiants': 'SFG','seattlemariners': 'SEA', 'st.louiscardinals': 'STL', 'tampabayrays': 'TBR', 'texasrangers': 'TEX', 'torontobluejays': 'TOR', 'washingtonnationals': 'WSN'}
 
 # get today's date
 today = str(date.today()).split('-')
@@ -95,83 +97,22 @@ def goToBREF(event):
     url = 'https://www.baseball-reference.com/players/{}/{}{}01.shtml'.format(last[0], last[:5], first[:2])
     webbrowser.open(url)
 
-def displayTeamOPS():
+def simulateGame():
     away_names = list(awayListbox.get(0,9))
+    away_pitcher = awayPitcherVar.get().strip()
+    away_selected = name_to_abbrev[awayTeam.get().lower().replace(' ', '')]
+
     home_names = list(homeListbox.get(0,9))
-    away_selected, home_selected = awayTeam.get(), homeTeam.get()
+    home_pitcher = homePitcherVar.get().strip()
+    home_selected = name_to_abbrev[homeTeam.get().lower().replace(' ', '')]
 
-    hitters_2019 = json.load(open('data/hitters_2019.json'))
-    hitters_2020_away = get2020Data(away_selected, away_names)
-    hitters_2020_home = get2020Data(home_selected, home_names)
+    away_RG = runPrediction.getPredictedRG(away_selected, away_names, home_selected, home_pitcher)
+    home_RG = runPrediction.getPredictedRG(home_selected, home_names, away_selected, away_pitcher)
 
-    for i in range(len(away_names)):
-        away_names[i] = away_names[i].strip()
-        home_names[i] = home_names[i].strip()
+    away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0) 
 
-    away_OPS_2019 = []
-    away_PA_2019 = []
-    away_wOPS_2019 = 0
-
-    away_OPS_2020 = []
-    away_PA_2020 = []
-    away_wOPS_2020 = 0
-
-    home_OPS_2019 = []
-    home_PA_2019 = []
-    home_wOPS_2019 = 0
-
-    home_OPS_2020 = []
-    home_PA_2020 = []
-    home_wOPS_2020 = 0
-
-    for name in away_names:
-        try:
-            away_OPS_2019.append(hitters_2019[name.strip()][1])
-        except:
-            away_OPS_2019.append(0)
-        try:
-            away_OPS_2020.append(hitters_2020_away[name.strip()][1])
-        except:
-            away_OPS_2020.append(0)
-
-        try:
-            away_PA_2019.append(hitters_2019[name.strip()][0])
-        except:
-            away_PA_2019.append(0)
-        try:
-            away_PA_2020.append(hitters_2020_away[name.strip()][0])
-        except:
-            away_PA_2020.append(0)
-
-    away_wOPS_2019 = int(sum([away_OPS_2019[i] * away_PA_2019[i] for i in range(len(away_OPS_2019))]) / sum(away_PA_2019))
-    away_wOPS_2020 = int(sum([away_OPS_2020[i] * away_PA_2020[i] for i in range(len(away_OPS_2020))]) / sum(away_PA_2020))
-
-    for name in home_names:
-        try:
-            home_OPS_2019.append(hitters_2019[name.strip()][1])
-        except:
-            home_OPS_2019.append(0)
-        try:
-            home_OPS_2020.append(hitters_2020_home[name.strip()][1])
-        except:
-            home_OPS_2020.append(0)
-        try:
-            home_PA_2019.append(hitters_2019[name.strip()][0])
-        except:
-            home_PA_2019.append(0)
-        try:
-            home_PA_2020.append(hitters_2020_home[name.strip()][0])
-        except:
-            home_PA_2020.append(0)
-
-    home_wOPS_2019 = int(sum([home_OPS_2019[i] * home_PA_2019[i] for i in range(len(home_OPS_2019))]) / sum(home_PA_2019))
-    home_wOPS_2020 = int(sum([home_OPS_2020[i] * home_PA_2020[i] for i in range(len(home_OPS_2020))]) / sum(home_PA_2020))
-
-    print(away_names)
-    print((away_wOPS_2019 + away_wOPS_2020) / 2)
-    print()
-    print(home_names)
-    print((home_wOPS_2019 + home_wOPS_2020) / 2)
+    awayProbVar.set("{:.2f} %".format(away_win_prob))
+    homeProbVar.set("{:.2f} %".format(home_win_prob))    
 
 # remove location from team name
 def cleanTeamName(name):
@@ -213,8 +154,8 @@ cal.bind('<<DateEntrySelected>>', updateDataHelper)
 # frame containing display lineup button and away/home team info
 teamsFrame = tk.Frame(master)
 teamsFrame.grid(row=1, column=1)
-tk.Button(teamsFrame, text="Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
-tk.Button(teamsFrame, text = "Display OPS", relief='groove', overrelief='sunken', command=displayTeamOPS).grid(row=0, column=1, sticky='nsw', pady=4)
+#tk.Button(teamsFrame, text="Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
+#tk.Button(teamsFrame, text = "Simulate Game", relief='groove', overrelief='sunken', command=simulateGame).grid(row=0, column=1, sticky='nsw', pady=4)
 
 # away team entries
 awayFrame = tk.Frame(teamsFrame)
@@ -222,6 +163,11 @@ awayFrame.grid(row=1, column=0)
 awayTeamVar = tk.StringVar(master)
 awayTeamVar.set(teamList[0])
 awayPitcherVar = tk.StringVar(master)
+
+tk.Button(awayFrame, text="Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
+awayProbVar = tk.StringVar(master)
+awayProbVar.set('')
+tk.Label(awayFrame, textvariable=awayProbVar).grid(row=0, column=1)
 
 tk.Label(awayFrame, text="     Away Team     ", bg='dodger blue').grid(row=1, column=0, padx=1, sticky='nsew')
 tk.Label(awayFrame, text="  Away Pitcher  ", bg='dodger blue').grid(row=2, column=0, padx=1, sticky='nsew')
@@ -237,12 +183,17 @@ homeTeamVar = tk.StringVar(master)
 homeTeamVar.set(teamList[0])
 homePitcherVar = tk.StringVar(master)
 
-tk.Label(homeFrame, text="    Home Team    ", bg='tomato2').grid(row=1, column=2, padx=1, sticky='nsew')
-tk.Label(homeFrame, text="   Home Pitcher   ", bg='tomato2').grid(row=2, column=2, padx=1, sticky='nsew')
+tk.Button(homeFrame, text = "Simulate Game", relief='groove', overrelief='sunken', command=simulateGame).grid(row=0, column=0, sticky='nsw', pady=4)
+homeProbVar = tk.StringVar(master)
+homeProbVar.set('')
+tk.Label(homeFrame, textvariable=homeProbVar).grid(row=0, column=1)
+
+tk.Label(homeFrame, text="    Home Team    ", bg='tomato2').grid(row=1, column=0, padx=1, sticky='nsew')
+tk.Label(homeFrame, text="   Home Pitcher   ", bg='tomato2').grid(row=2, column=0, padx=1, sticky='nsew')
 homeTeam = tk.ttk.Combobox(homeFrame, textvariable=homeTeamVar, values=teamList)
-homeTeam.grid(row=1, column=3, padx=4)
+homeTeam.grid(row=1, column=1, padx=4)
 homePitcher = tk.Entry(homeFrame, relief = 'groove', textvariable=homePitcherVar)
-homePitcher.grid(row=2, column=3, sticky='we', padx=4)
+homePitcher.grid(row=2, column=1, sticky='we', padx=4)
 
 # away lineup display
 awayListbox = tk.Listbox(awayFrame)
@@ -252,7 +203,7 @@ awayListbox.bind('<Double-1>', goToBREF)
 
 # home lineup display
 homeListbox = tk.Listbox(homeFrame)
-homeListbox.grid(row=3, column=3, sticky='we', padx=4)
+homeListbox.grid(row=3, column=1, sticky='we', padx=4)
 homeListbox.config(height=9)
 homeListbox.bind('<Double-1>', goToBREF)
 

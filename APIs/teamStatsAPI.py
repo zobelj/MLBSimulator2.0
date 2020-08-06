@@ -5,9 +5,9 @@ import unidecode
 name_to_abbrev = {'arizonadiamondbacks': 'ARI', 'atlantabraves': 'ATL', 'baltimoreorioles': 'BAL', 'bostonredsox': 'BOS', 'chicagowhitesox': 'CHW', 'chicagocubs': 'CHC', 'cincinnatireds': 'CIN', 'clevelandindians': 'CLE', 'coloradorockies': 'COL', 'detroittigers': 'DET', 'houstonastros': 'HOU', 'kansascityroyals': 'KCR','losangelesangels': 'LAA', 'losangelesdodgers': 'LAD','miamimarlins': 'MIA', 'milwaukeebrewers': 'MIL', 'minnesotatwins': 'MIN', 'newyorkyankees': 'NYY', 'newyorkmets': 'NYM','oaklandathletics': 'OAK', 'philadelphiaphillies': 'PHI', 'pittsburghpirates': 'PIT','sandiegopadres': 'SDP', 'sanfranciscogiants': 'SFG','seattlemariners': 'SEA', 'st.louiscardinals': 'STL', 'tampabayrays': 'TBR', 'texasrangers': 'TEX', 'torontobluejays': 'TOR', 'washingtonnationals': 'WSN'}
 
 def get2020Data(team_name, player_names):
-    abbrev = name_to_abbrev[team_name.lower().replace(' ', '')]
+    #abbrev = name_to_abbrev[team_name.lower().replace(' ', '')]
 
-    url = 'https://www.baseball-reference.com/teams/{}/2020.shtml' .format(abbrev)
+    url = 'https://www.baseball-reference.com/teams/{}/2020.shtml' .format(team_name.upper())
 
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')

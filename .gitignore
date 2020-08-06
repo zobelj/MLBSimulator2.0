@@ -2,3 +2,6 @@ env/
 .vscode/
 data/*
 !data/.gitkeep
+!data/hitters_2019.json
+!data/mlb_2019_pitchers.json
+!data/mlb_2019_teams.json
