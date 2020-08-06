@@ -10,6 +10,7 @@ from lineupAPI import updateLineupsJSON
 from matchupsAPI import updateMatchupsJSON
 import json
 import webbrowser
+from teamStatsAPI import get2020Data
 
 # list of strings containing each team name
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
@@ -62,6 +63,7 @@ def displayLineups():
     except:
         homePitcherVar.set('Error loading lineup.')
 
+
 # displays the day's matchups in matchups listbox
 def displayMatchups():
     matchups_json = json.load(open('data/matchups.json'))
@@ -70,14 +72,17 @@ def displayMatchups():
 
     matchupsListbox.delete(0, tk.END)
     for i in range(len(matchups_json['away'])):
-        matchupsListbox.insert(i+1, matchups_away[i].title() + ' at ' + matchups_home[i].title())
+        matchupsListbox.insert(i+1, ' ' + matchups_away[i].title() + ' at ' + matchups_home[i].title())
 
 # displays lineups for matchup selected from matchups listbox
 def selectMatchup(event):
     thisWidget = event.widget
-    away_selected, home_selected = thisWidget.get(int(thisWidget.curselection()[0])).split(' at ')
+    away_selected, home_selected = thisWidget.get(int(thisWidget.curselection()[0])).replace('D-Backs', 'Diamondbacks').replace("A's", "Athletics").split(' at ')
+
     away_selected_index = [i for i, s in enumerate(teamList) if away_selected.strip() in s]
     home_selected_index = [i for i, s in enumerate(teamList) if home_selected.strip() in s]
+
+
     awayTeamVar.set(teamList[away_selected_index[0]])
     homeTeamVar.set(teamList[home_selected_index[0]])
     displayLineups()
@@ -90,6 +95,84 @@ def goToBREF(event):
     first, last = name.split(' ')[:2]
     url = 'https://www.baseball-reference.com/players/{}/{}{}01.shtml'.format(last[0], last[:5], first[:2])
     webbrowser.open(url)
+
+def displayTeamOPS():
+    away_names = list(awayListbox.get(0,9))
+    home_names = list(homeListbox.get(0,9))
+    away_selected, home_selected = awayTeam.get(), homeTeam.get()
+
+    hitters_2019 = json.load(open('data/hitters_2019.json'))
+    hitters_2020_away = get2020Data(away_selected, away_names)
+    hitters_2020_home = get2020Data(home_selected, home_names)
+
+    for i in range(len(away_names)):
+        away_names[i] = away_names[i].strip()
+        home_names[i] = home_names[i].strip()
+
+    away_OPS_2019 = []
+    away_PA_2019 = []
+    away_wOPS_2019 = 0
+
+    away_OPS_2020 = []
+    away_PA_2020 = []
+    away_wOPS_2020 = 0
+
+    home_OPS_2019 = []
+    home_PA_2019 = []
+    home_wOPS_2019 = 0
+
+    home_OPS_2020 = []
+    home_PA_2020 = []
+    home_wOPS_2020 = 0
+
+    for name in away_names:
+        try:
+            away_OPS_2019.append(hitters_2019[name.strip()][1])
+        except:
+            away_OPS_2019.append(0)
+        try:
+            away_OPS_2020.append(hitters_2020_away[name.strip()][1])
+        except:
+            away_OPS_2020.append(0)
+
+        try:
+            away_PA_2019.append(hitters_2019[name.strip()][0])
+        except:
+            away_PA_2019.append(0)
+        try:
+            away_PA_2020.append(hitters_2020_away[name.strip()][0])
+        except:
+            away_PA_2020.append(0)
+
+    away_wOPS_2019 = int(sum([away_OPS_2019[i] * away_PA_2019[i] for i in range(len(away_OPS_2019))]) / sum(away_PA_2019))
+    away_wOPS_2020 = int(sum([away_OPS_2020[i] * away_PA_2020[i] for i in range(len(away_OPS_2020))]) / sum(away_PA_2020))
+
+    for name in home_names:
+        try:
+            home_OPS_2019.append(hitters_2019[name.strip()][1])
+        except:
+            home_OPS_2019.append(0)
+        try:
+            home_OPS_2020.append(hitters_2020_home[name.strip()][1])
+        except:
+            home_OPS_2020.append(0)
+        try:
+            home_PA_2019.append(hitters_2019[name.strip()][0])
+        except:
+            home_PA_2019.append(0)
+        try:
+            home_PA_2020.append(hitters_2020_home[name.strip()][0])
+        except:
+            home_PA_2020.append(0)
+
+    home_wOPS_2019 = int(sum([home_OPS_2019[i] * home_PA_2019[i] for i in range(len(home_OPS_2019))]) / sum(home_PA_2019))
+    home_wOPS_2020 = int(sum([home_OPS_2020[i] * home_PA_2020[i] for i in range(len(home_OPS_2020))]) / sum(home_PA_2020))
+
+    print(away_names)
+    print((away_wOPS_2019 + away_wOPS_2020) / 2)
+    print()
+    print(home_names)
+    print((home_wOPS_2019 + home_wOPS_2020) / 2)
 
 # remove location from team name
 def cleanTeamName(name):
@@ -132,6 +215,7 @@ cal.bind('<<DateEntrySelected>>', updateDataHelper)
 teamsFrame = tk.Frame(master)
 teamsFrame.grid(row=1, column=1)
 tk.Button(teamsFrame, text="Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
+tk.Button(teamsFrame, text = "Display OPS", relief='groove', overrelief='sunken', command=displayTeamOPS).grid(row=0, column=1, sticky='nsw', pady=4)
 
 # away team entries
 awayFrame = tk.Frame(teamsFrame)
@@ -176,10 +260,10 @@ homeListbox.bind('<Double-1>', goToBREF)
 
 # frame containing day's matchup and display button
 matchupsFrame = tk.Frame(master)
-matchupsFrame.grid(row=1, column=0, rowspan=2, pady=12, padx=10)
+matchupsFrame.grid(row=1, column=0, rowspan=2, pady=4, padx=10)
 #tk.Button(matchupsFrame, text='Display Matchups', relief='groove', overrelief='sunken', command=displayMatchups).grid(row=0, column=0, pady=2, sticky='nsew')
 matchupsListbox = tk.Listbox(matchupsFrame)
-matchupsListbox.grid(row=2, column=0)
+matchupsListbox.grid(row=2, column=0, sticky='nsew')
 matchupsListbox.config(height=15)
 
 matchupsListbox.bind('<Double-1>', selectMatchup)
