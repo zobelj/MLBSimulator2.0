@@ -11,6 +11,8 @@ def getPredictedRG(team, lineup, oppTeam, oppPitcher):
         x = pitcher_data[oppPitcher]
     except:
         x = [4.57, 4.57, 5.3, 1]
+        print("Unable to find data for {}. Using league average instead.".format(oppPitcher))
+
     oppPitcher_innings = float(int(x[2]) + ((x[2] - int(x[2])) * 3.33)) / x[3]
     oppPitcher_RA = ((x[0] + x[1]) / 2) * oppPitcher_innings / 9
 
@@ -26,10 +28,19 @@ def getPredictedRG(team, lineup, oppTeam, oppPitcher):
 
     return(predicted_RG)
 
+def getPredictedRG_Basic(team, opponent):
+    rg_data = json.load(open('data/mlb_2019_teams.json'))
+
+    team_RG = rg_data[team][0]
+    opp_RA = rg_data[opponent][2]
+
+    predicted_RG = (team_RG + opp_RA) / 2
+
+    return(predicted_RG)
+
 def getLineupOPS(lineup, team_name):
     hitters_2019 = json.load(open('data/hitters_2019.json'))
     hitters_2020 = get2020Data(team_name, lineup)
-
 
     for i in range(len(lineup)):
         lineup[i] = lineup[i].strip()

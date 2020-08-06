@@ -64,7 +64,6 @@ def displayLineups():
     except:
         homePitcherVar.set('Error loading lineup.')
 
-
 # displays the day's matchups in matchups listbox
 def displayMatchups():
     matchups_json = json.load(open('data/matchups.json'))
@@ -83,7 +82,6 @@ def selectMatchup(event):
     away_selected_index = [i for i, s in enumerate(teamList) if away_selected.strip() in s]
     home_selected_index = [i for i, s in enumerate(teamList) if home_selected.strip() in s]
 
-
     awayTeamVar.set(teamList[away_selected_index[0]])
     homeTeamVar.set(teamList[home_selected_index[0]])
     displayLineups()
@@ -101,13 +99,17 @@ def simulateGame():
     away_names = list(awayListbox.get(0,9))
     away_pitcher = awayPitcherVar.get().strip()
     away_selected = name_to_abbrev[awayTeam.get().lower().replace(' ', '')]
-
+    
     home_names = list(homeListbox.get(0,9))
     home_pitcher = homePitcherVar.get().strip()
     home_selected = name_to_abbrev[homeTeam.get().lower().replace(' ', '')]
 
-    away_RG = runPrediction.getPredictedRG(away_selected, away_names, home_selected, home_pitcher)
-    home_RG = runPrediction.getPredictedRG(home_selected, home_names, away_selected, away_pitcher)
+    if(len(away_names) == 0 or len(home_names) == 0):
+        away_RG = runPrediction.getPredictedRG_Basic(away_selected, home_selected)
+        home_RG = runPrediction.getPredictedRG_Basic(home_selected, away_selected)
+    else:
+        away_RG = runPrediction.getPredictedRG(away_selected, away_names, home_selected, home_pitcher)
+        home_RG = runPrediction.getPredictedRG(home_selected, home_names, away_selected, away_pitcher)
 
     away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0) 
 
@@ -139,7 +141,6 @@ def center_window():
     y = (screen_height/3) - (height/4)
     master.geometry('%dx%d+%d+%d' % (width/2.5, height/2.5, x, y))
 
-
 # frame containing update data button and date selection
 buttonFrame = tk.Frame(master)
 buttonFrame.grid(row=0, column=0, sticky='w', padx=10)
@@ -150,12 +151,9 @@ cal = DateEntry(buttonFrame, width=12, year=int(today[0]), month=int(today[1]), 
 cal.grid(row=1, column=0)
 cal.bind('<<DateEntrySelected>>', updateDataHelper)
 
-
 # frame containing display lineup button and away/home team info
 teamsFrame = tk.Frame(master)
 teamsFrame.grid(row=1, column=1)
-#tk.Button(teamsFrame, text="Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
-#tk.Button(teamsFrame, text = "Simulate Game", relief='groove', overrelief='sunken', command=simulateGame).grid(row=0, column=1, sticky='nsw', pady=4)
 
 # away team entries
 awayFrame = tk.Frame(teamsFrame)
@@ -206,7 +204,6 @@ homeListbox = tk.Listbox(homeFrame)
 homeListbox.grid(row=3, column=1, sticky='we', padx=4)
 homeListbox.config(height=9)
 homeListbox.bind('<Double-1>', goToBREF)
-
 
 # frame containing day's matchup and display button
 matchupsFrame = tk.Frame(master)

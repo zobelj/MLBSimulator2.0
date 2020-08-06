@@ -24,7 +24,7 @@ def loadPitcherData():
     names = list(data.loc[:, 'Name'])
     era = list(data.loc[:, 'ERA'].fillna(0).replace([np.inf, -np.inf], 100))
     fip = list(data.loc[:, 'FIP'].fillna(0).replace([np.inf, -np.inf], 100))
-    innings = list(data.loc[:, 'IP'].fillna(0))
+    innings = list(data.loc[:, 'Start-IP'].fillna(0))
     starts = list(data.loc[:, 'GS'].fillna(0))
 
     for i in range(len(names)):
@@ -54,7 +54,7 @@ def saveToJSON(data_dict, name):
         json.dump(data_dict, outfile)
 
 #saveToJSON(loadHitterData(), 'mlb_2019_hitters.json')
-#saveToJSON(loadPitcherData(), 'mlb_2019_pitchers.json')
-saveToJSON(loadTeamData(), 'mlb_2019_teams.json')
+saveToJSON(loadPitcherData(), 'mlb_2019_pitchers.json')
+#saveToJSON(loadTeamData(), 'mlb_2019_teams.json')
 
 
