@@ -176,7 +176,7 @@ def center_window():
     # calculate position x and y coordinates
     x = (screen_width/2)  - (width/4)
     y = (screen_height/3) - (height/4)
-    master.geometry('%dx%d+%d+%d' % (width/2.5, height/2.5, x, y))
+    master.geometry('%dx%d+%d+%d' % (width/2.2, height/2.2, x, y))
 
 # frame containing update data button and date selection
 dateFrame = tk.Frame(master)
