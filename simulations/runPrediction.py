@@ -14,8 +14,8 @@ def getPredictedRG(team, lineup, oppTeam, oppPitcher):
     try:
         x = pitcher_data[oppPitcher]
     except:
-        x = [4.57, 4.57, 5.3, 1]
-        print("Unable to find data for {}. Using league average instead.".format(oppPitcher))
+        x = [rg_data[oppTeam][2], rg_data[oppTeam][2], 5.33, 1]
+        print("Unable to find data for {}. Using team average instead.".format(oppPitcher))
 
     oppPitcher_innings = float(int(x[2]) + ((x[2] - int(x[2])) * 3.33)) / x[3]
     oppPitcher_RA = ((x[0] + x[1]) / 2) * oppPitcher_innings / 9
@@ -110,5 +110,3 @@ def get2020Data(team_name, player_names):
     data_2020 = {names_2020[i]: [pa_2020[i], ops_2020[i]] for i in range(len(names_2020))}
 
     return(data_2020)
-
-#getPredictedRG('CHW', 'WSN', 'Max Scherzer')

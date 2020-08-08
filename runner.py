@@ -108,6 +108,7 @@ def simulateGame():
     if(len(away_names) == 0 or len(home_names) == 0):
         away_RG = runPrediction.getPredictedRG_Basic(away_selected, home_selected)
         home_RG = runPrediction.getPredictedRG_Basic(home_selected, away_selected)
+        print("No lineup available.")
     else:
         away_RG = runPrediction.getPredictedRG(away_selected, away_names, home_selected, home_pitcher)
         home_RG = runPrediction.getPredictedRG(home_selected, home_names, away_selected, away_pitcher)
@@ -135,8 +136,8 @@ def simulateAll():
         home_abbrev = name_to_abbrev[teamList[home_selected_index[0]].lower().replace(' ', '')]
 
         try:
-            away_names = lineups_json[away_selected]
-            home_names = lineups_json[home_selected]
+            away_names = lineups_json[away_selected.replace(' ', '')]
+            home_names = lineups_json[home_selected.replace(' ', '')]
             away_pitcher = away_names[-1]
             home_pitcher = home_names[-1]
             away_lineup = away_names[:-1]
@@ -146,6 +147,7 @@ def simulateAll():
         except:
             away_RG = runPrediction.getPredictedRG_Basic(away_abbrev, home_abbrev)
             home_RG = runPrediction.getPredictedRG_Basic(home_abbrev, away_abbrev)
+            print("No lineup available for {} or {}. Running basic simulation.".format(away_abbrev, home_abbrev))
 
         away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0)
 
