@@ -5,3 +5,4 @@ data/*
 !data/hitters_2019.json
 !data/mlb_2019_pitchers.json
 !data/mlb_2019_teams.json
+!data/mlb_2019_teams.csv

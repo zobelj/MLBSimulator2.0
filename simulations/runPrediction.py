@@ -51,11 +51,11 @@ def getLineupOPS(lineup, team_name):
 
     ops_2019 = []
     pa_2019 = []
-    wOPS_2019 = 0
+    #wOPS_2019 = 0
 
     ops_2020 = []
     pa_2020 = []
-    wOPS_2020 = 0
+    #wOPS_2020 = 0
 
     for name in lineup:
         try:
@@ -75,12 +75,17 @@ def getLineupOPS(lineup, team_name):
             pa_2020.append(hitters_2020[name.strip()][0])
         except:
             pa_2020.append(0)
-
+    
     wOPS_2019 = int(sum([ops_2019[i] * pa_2019[i] for i in range(len(ops_2019))]) / sum(pa_2019))
     wOPS_2020 = int(sum([ops_2020[i] * pa_2020[i] for i in range(len(ops_2020))]) / sum(pa_2020))
+    wOPS = wOPS_2019 * .5 + wOPS_2020 * .5
+    
+    '''
+    wOPS = sum([ops_2019[i] * pa_2019[i] for i in range(len(ops_2019))]) / sum(pa_2019)
+    wOPS += sum([ops_2020[i] * pa_2020[i] for i in range(len(ops_2020))]) / sum(pa_2020)
 
-    wOPS = (wOPS_2019 + wOPS_2020) / 2
-
+    wOPS /= sum(pa_2019) + sum(pa_2020)
+    '''
     return(wOPS)
 
 def get2020Data(team_name, player_names):
@@ -110,3 +115,8 @@ def get2020Data(team_name, player_names):
     data_2020 = {names_2020[i]: [pa_2020[i], ops_2020[i]] for i in range(len(names_2020))}
 
     return(data_2020)
+<<<<<<< HEAD
+=======
+
+#print(getLineupOPS(['Austin Slater','Mike Yastrzemski','Donovan Solano','Evan Longoria','Wilmer Flores','Brandon Belt','Darin Ruf','Chadwick Tromp','Mauricio Dubon'], 'SFG'))
+>>>>>>> 5d6ec4288730ccd9472a38afbd2226b88ab04df5
