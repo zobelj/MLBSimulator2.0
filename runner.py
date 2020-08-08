@@ -12,6 +12,7 @@ import json
 import webbrowser
 import simulations.runPrediction as runPrediction
 import simulations.simulate as simulate
+from bettingFunctions import convertToML
 
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
 locations = ['Arizona','Atlanta','Baltimore','Boston','Chicago','Cincinnati','Cleveland','Colorado','Detroit','Houston','KansasCity','LosAngeles','Miami','Milwaukee','Minnesota','NewYork','Oakland','Philadelphia','Pittsburgh','SanDiego','SanFrancisco','Seattle','St.Louis','TampaBay','Texas','Toronto','Washington']
@@ -113,9 +114,16 @@ def simulateGame():
         home_RG = runPrediction.getPredictedRG(home_selected, home_names, away_selected, away_pitcher)
 
     away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0) 
-
-    awayProbVar.set("{:.2f} %".format(away_win_prob))
-    homeProbVar.set("{:.2f} %".format(home_win_prob))    
+    away_ML, home_ML = convertToML(away_win_prob), convertToML(home_win_prob)
+    
+    if(away_ML > 0):
+        awayMLVar.set("+{}".format(away_ML))
+    else:
+        awayMLVar.set("{}".format(away_ML))
+    if(home_ML > 0):
+        homeMLVar.set("+{}".format(home_ML))
+    else:
+        homeMLVar.set("{}".format(home_ML))
 
 def simulateAll():
     matchups = matchupsListbox.get(0, tk.END)
@@ -148,9 +156,20 @@ def simulateAll():
             home_RG = runPrediction.getPredictedRG_Basic(home_abbrev, away_abbrev)
 
         away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0)
+        away_ML, home_ML = convertToML(away_win_prob), convertToML(home_win_prob)
 
+        if(away_ML > 0):
+            print("{}: +{:.2f}".format(away_abbrev, away_ML))
+        else:
+            print("{}: {:.2f}".format(away_abbrev, away_ML))
+        if(home_ML > 0):
+            print("{}: +{:.2f}".format(home_abbrev, home_ML))
+        else:
+            print("{}: {:.2f}".format(home_abbrev, home_ML))
+        '''
         print("{}: {:.2f}%".format(away_abbrev, away_win_prob))
         print("{}: {:.2f}%".format(home_abbrev, home_win_prob))
+        '''
         print()
 
 # remove location from team name
@@ -205,9 +224,9 @@ awayTeamVar.set(teamList[0])
 awayPitcherVar = tk.StringVar(master)
 
 tk.Button(awayFrame, text=" Display Lineups ", relief='groove', overrelief='sunken', command=displayLineups).grid(row=0, column=0, sticky='nsw', pady=4)
-awayProbVar = tk.StringVar(master)
-awayProbVar.set('')
-tk.Label(awayFrame, textvariable=awayProbVar).grid(row=0, column=1)
+awayMLVar = tk.StringVar(master)
+awayMLVar.set('')
+tk.Label(awayFrame, textvariable=awayMLVar).grid(row=0, column=1)
 
 tk.Label(awayFrame, text="     Away Team     ", bg='dodger blue').grid(row=1, column=0, padx=1, sticky='nsew')
 tk.Label(awayFrame, text="  Away Pitcher  ", bg='dodger blue').grid(row=2, column=0, padx=1, sticky='nsew')
@@ -224,9 +243,9 @@ homeTeamVar.set(teamList[0])
 homePitcherVar = tk.StringVar(master)
 
 #tk.Button(homeFrame, text = "Simulate Game", relief='groove', overrelief='sunken', command=simulateGame).grid(row=0, column=0, sticky='nsw', pady=4)
-homeProbVar = tk.StringVar(master)
-homeProbVar.set('')
-tk.Label(homeFrame, textvariable=homeProbVar).grid(row=0, column=1)
+homeMLVar = tk.StringVar(master)
+homeMLVar.set('')
+tk.Label(homeFrame, textvariable=homeMLVar).grid(row=0, column=1)
 
 tk.Label(homeFrame, text="    Home Team    ", bg='tomato2').grid(row=1, column=0, padx=1, sticky='nsew')
 tk.Label(homeFrame, text="   Home Pitcher   ", bg='tomato2').grid(row=2, column=0, padx=1, sticky='nsew')
