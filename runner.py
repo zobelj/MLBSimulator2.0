@@ -12,7 +12,7 @@ import json
 import webbrowser
 import simulations.runPrediction as runPrediction
 import simulations.simulate as simulate
-from bettingFunctions import convertToML
+from simulations.bettingFunctions import convertToML
 
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
 locations = ['Arizona','Atlanta','Baltimore','Boston','Chicago','Cincinnati','Cleveland','Colorado','Detroit','Houston','KansasCity','LosAngeles','Miami','Milwaukee','Minnesota','NewYork','Oakland','Philadelphia','Pittsburgh','SanDiego','SanFrancisco','Seattle','St.Louis','TampaBay','Texas','Toronto','Washington']
@@ -118,13 +118,13 @@ def simulateGame():
     away_ML, home_ML = convertToML(away_win_prob), convertToML(home_win_prob)
     
     if(away_ML > 0):
-        awayMLVar.set("+{}".format(away_ML))
+        awayMLVar.set("+{:.2f}".format(away_ML))
     else:
-        awayMLVar.set("{}".format(away_ML))
+        awayMLVar.set("{:.2f}".format(away_ML))
     if(home_ML > 0):
-        homeMLVar.set("+{}".format(home_ML))
+        homeMLVar.set("+{:.2f}".format(home_ML))
     else:
-        homeMLVar.set("{}".format(home_ML))
+        homeMLVar.set("{:.2f}".format(home_ML))
 
 def simulateAll():
     matchups = matchupsListbox.get(0, tk.END)
