@@ -44,18 +44,18 @@ def getPredictedRG_Basic(team, opponent):
 
 def getLineupOPS(lineup, team_name):
     hitters_2019 = json.load(open('data/hitters_2019.json'))
-    hitters_2020 = get2020Data(team_name, lineup)
+    hitters_2020 = get2020Hitters(team_name, lineup)
 
     for i in range(len(lineup)):
         lineup[i] = lineup[i].strip()
 
     ops_2019 = []
     pa_2019 = []
-    #wOPS_2019 = 0
+    wOPS_2019 = 0
 
     ops_2020 = []
     pa_2020 = []
-    #wOPS_2020 = 0
+    wOPS_2020 = 0
 
     for name in lineup:
         try:
@@ -75,24 +75,43 @@ def getLineupOPS(lineup, team_name):
             pa_2020.append(hitters_2020[name.strip()][0])
         except:
             pa_2020.append(0)
-    
+
+    avg_pa_2020 = sum(pa_2020) / len(pa_2020)
+
+    for i in range(len(ops_2019)):
+        if pa_2019[i] > 100:
+            wOPS_2019 += ops_2019[i]
+        else:
+            wOPS_2019 += 75
+    wOPS_2019 /= len(lineup)
+
+    for i in range(len(ops_2020)):
+        if(pa_2020[i] > (0.5 * avg_pa_2020)):
+            wOPS_2020 += ops_2020[i]
+        else:
+            wOPS_2020 += 75
+    wOPS_2020 /= len(lineup)
+
+    wOPS = wOPS_2019 * .8 + wOPS_2020 * .2
+
+    '''
     wOPS_2019 = int(sum([ops_2019[i] * pa_2019[i] for i in range(len(ops_2019))]) / sum(pa_2019))
     wOPS_2020 = int(sum([ops_2020[i] * pa_2020[i] for i in range(len(ops_2020))]) / sum(pa_2020))
     wOPS = wOPS_2019 * .5 + wOPS_2020 * .5
-    
+    '''
     '''
     wOPS = sum([ops_2019[i] * pa_2019[i] for i in range(len(ops_2019))]) / sum(pa_2019)
     wOPS += sum([ops_2020[i] * pa_2020[i] for i in range(len(ops_2020))]) / sum(pa_2020)
 
     wOPS /= sum(pa_2019) + sum(pa_2020)
     '''
+    
     return(wOPS)
 
-def get2020Data(team_name, player_names):
+def get2020Hitters(team_name, player_names):
     #abbrev = name_to_abbrev[team_name.lower().replace(' ', '')]
 
     url = 'https://www.baseball-reference.com/teams/{}/2020.shtml' .format(team_name.upper())
-
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -110,7 +129,7 @@ def get2020Data(team_name, player_names):
             pa_2020[i] = int(pa_2020[i].get_text())
         except:
             pa_2020[i] = 0
-        names_2020[i] = unidecode.unidecode(names_2020[i]).strip()
+        names_2020[i] = unidecode.unidecode(names_2020[i]).strip()\
 
     data_2020 = {names_2020[i]: [pa_2020[i], ops_2020[i]] for i in range(len(names_2020))}
 
