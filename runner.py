@@ -13,6 +13,7 @@ import webbrowser
 import simulations.runPrediction as runPrediction
 import simulations.simulate as simulate
 from simulations.bettingFunctions import convertToML
+import APIs.mlb_2020_API as mlb_2020_API
 
 teamList = ['', 'Arizona Diamondbacks','Atlanta Braves','Baltimore Orioles','Boston Red Sox','Chicago White Sox','Chicago Cubs','Cincinnati Reds','Cleveland Indians','Colorado Rockies','Detroit Tigers','Houston Astros','Kansas City Royals','Los Angeles Angels','Los Angeles Dodgers','Miami Marlins','Milwaukee Brewers','Minnesota Twins','New York Yankees','New York Mets','Oakland Athletics','Philadelphia Phillies','Pittsburgh Pirates','San Diego Padres','San Francisco Giants','Seattle Mariners','St. Louis Cardinals','Tampa Bay Rays','Texas Rangers','Toronto Blue Jays','Washington Nationals']
 locations = ['Arizona','Atlanta','Baltimore','Boston','Chicago','Cincinnati','Cleveland','Colorado','Detroit','Houston','KansasCity','LosAngeles','Miami','Milwaukee','Minnesota','NewYork','Oakland','Philadelphia','Pittsburgh','SanDiego','SanFrancisco','Seattle','St.Louis','TampaBay','Texas','Toronto','Washington']
@@ -37,6 +38,7 @@ def updateData():
 
 def updateDataHelper(_):
     updateData()
+    mlb_2020_API.update2020Data()
 
 # print lineups for selected team on selected date
 def displayLineups():
@@ -112,9 +114,7 @@ def simulateGame():
         print("No lineup available.")
     else:
         away_RG = runPrediction.getPredictedRG(away_selected, away_names, home_selected, home_pitcher)
-        print(away_RG)
         home_RG = runPrediction.getPredictedRG(home_selected, home_names, away_selected, away_pitcher)
-        print(home_RG)
 
     away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0) 
     away_ML, home_ML = convertToML(away_win_prob), convertToML(home_win_prob)

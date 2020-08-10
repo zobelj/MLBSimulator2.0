@@ -6,4 +6,5 @@ data/*
 !data/mlb_2019_pitchers.json
 !data/mlb_2019_teams.json
 !data/mlb_2019_teams.csv
-!data/2019_historical_data.csv
+!data/2019_historical_data.csv\
+!data/mlb_2020_all.json
