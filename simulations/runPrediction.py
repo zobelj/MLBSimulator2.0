@@ -60,17 +60,9 @@ def getLineupOPS(lineup, team_name):
 
     ops_2019 = []
     pa_2019 = []
-<<<<<<< HEAD
-    wOPS_2019 = 0
 
     ops_2020 = []
     pa_2020 = []
-    wOPS_2020 = 0
-=======
-
-    ops_2020 = []
-    pa_2020 = []
->>>>>>> f1f7c9d25a4a676c23ce485925725a7166c436e6
 
     for name in lineup:
         try:
