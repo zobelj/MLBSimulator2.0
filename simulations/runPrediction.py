@@ -2,43 +2,52 @@ import json
 import unidecode
 from bs4 import BeautifulSoup
 import requests
+import numpy as np
 
 name_to_abbrev = {'arizonadiamondbacks': 'ARI', 'atlantabraves': 'ATL', 'baltimoreorioles': 'BAL', 'bostonredsox': 'BOS', 'chicagowhitesox': 'CHW', 'chicagocubs': 'CHC', 'cincinnatireds': 'CIN', 'clevelandindians': 'CLE', 'coloradorockies': 'COL', 'detroittigers': 'DET', 'houstonastros': 'HOU', 'kansascityroyals': 'KCR','losangelesangels': 'LAA', 'losangelesdodgers': 'LAD','miamimarlins': 'MIA', 'milwaukeebrewers': 'MIL', 'minnesotatwins': 'MIN', 'newyorkyankees': 'NYY', 'newyorkmets': 'NYM','oaklandathletics': 'OAK', 'philadelphiaphillies': 'PHI', 'pittsburghpirates': 'PIT','sandiegopadres': 'SDP', 'sanfranciscogiants': 'SFG','seattlemariners': 'SEA', 'st.louiscardinals': 'STL', 'tampabayrays': 'TBR', 'texasrangers': 'TEX', 'torontobluejays': 'TOR', 'washingtonnationals': 'WSN'}
+league_OPS = .707
 
 def getPredictedRG(team, lineup, oppTeam, oppPitcher):
-    rg_data = json.load(open('data/mlb_2019_teams.json'))
+    rg_data_2019 = json.load(open('data/mlb_2019_teams.json'))
+    rg_data_2020 = json.load(open('data/mlb_2020_all.json'))
     pitcher_data = json.load(open('data/mlb_2019_pitchers.json'))
 
-    team_RG = rg_data[team][0]
-    team_OPS = rg_data[team][1]
+    team_RG_2019 = rg_data_2019[team][0]
+    team_RG_2020 = rg_data_2020['batting'][team]['R'] / rg_data_2020['batting'][team]['GP']
+    team_OPS_2019 = rg_data_2019[team][1]
+    team_OPS_2020 = 100 * rg_data_2020['batting'][team]['OPS'] / league_OPS
+
     try:
         x = pitcher_data[oppPitcher]
     except:
-        x = [rg_data[oppTeam][2], rg_data[oppTeam][2], 5.33, 1]
+        x = [(rg_data_2019[oppTeam][2] + rg_data_2020['pitching'][team]['ERA']) / 2, (rg_data_2019[oppTeam][2] + rg_data_2020['pitching'][team]['ERA']), 5.33, 1]
         print("Unable to find data for {}. Using team average instead.".format(oppPitcher))
 
     oppPitcher_innings = float(int(x[2]) + ((x[2] - int(x[2])) * 3.33)) / x[3]
     oppPitcher_RA = ((x[0] + x[1]) / 2) * oppPitcher_innings / 9
 
-    bullpen_RA = (rg_data[oppTeam][3] / 9) * (9 - oppPitcher_innings)
+    bullpen_RA = (rg_data_2019[oppTeam][3] / 9) * (9 - oppPitcher_innings)
     predicted_RA = oppPitcher_RA + bullpen_RA
-    
-    lineup_OPS = getLineupOPS(lineup, team)
-    ops_multiplier = lineup_OPS / team_OPS
 
-    predicted_RS = team_RG * ops_multiplier
+    lineup_OPS = getLineupOPS(lineup, team)
+    ops_multiplier = lineup_OPS / ((team_OPS_2019 + team_OPS_2020) / 2)
+  
+    predicted_RS = ((team_RG_2019 * 0.5 + team_RG_2020 * 0.5)) * ops_multiplier
 
     predicted_RG = (predicted_RS + predicted_RA) / 2
 
     return(predicted_RG)
 
 def getPredictedRG_Basic(team, opponent):
-    rg_data = json.load(open('data/mlb_2019_teams.json'))
+    rg_data_2019 = json.load(open('data/mlb_2019_teams.json'))
+    rg_data_2020 = json.load(open('data/mlb_2020_all.json'))
 
-    team_RG = rg_data[team][0]
-    opp_RA = rg_data[opponent][2]
+    team_rg_2019 = rg_data_2019[team][0]
+    opp_ra_2019 = rg_data_2019[opponent][2]
+    team_rg_2020 = rg_data_2020['batting'][team]['R'] / rg_data_2020['batting'][team]['GP']
+    opp_ra_2020 = rg_data_2020['pitching'][team]['ERA']
 
-    predicted_RG = (team_RG + opp_RA) / 2
+    predicted_RG = ((team_rg_2020 + opp_ra_2020) * .5) * .5 + ((team_rg_2019 + opp_ra_2019) * .5) * .5
 
     return(predicted_RG)
 
@@ -51,11 +60,17 @@ def getLineupOPS(lineup, team_name):
 
     ops_2019 = []
     pa_2019 = []
+<<<<<<< HEAD
     wOPS_2019 = 0
 
     ops_2020 = []
     pa_2020 = []
     wOPS_2020 = 0
+=======
+
+    ops_2020 = []
+    pa_2020 = []
+>>>>>>> f1f7c9d25a4a676c23ce485925725a7166c436e6
 
     for name in lineup:
         try:
@@ -93,18 +108,17 @@ def getLineupOPS(lineup, team_name):
     wOPS_2020 /= len(lineup)
 
     wOPS = wOPS_2019 * .8 + wOPS_2020 * .2
+    
+    wOPS_2019 = np.mean(ops_2019)
+    wOPS_2020 = np.mean(ops_2020)
 
     '''
     wOPS_2019 = int(sum([ops_2019[i] * pa_2019[i] for i in range(len(ops_2019))]) / sum(pa_2019))
     wOPS_2020 = int(sum([ops_2020[i] * pa_2020[i] for i in range(len(ops_2020))]) / sum(pa_2020))
     wOPS = wOPS_2019 * .5 + wOPS_2020 * .5
     '''
-    '''
-    wOPS = sum([ops_2019[i] * pa_2019[i] for i in range(len(ops_2019))]) / sum(pa_2019)
-    wOPS += sum([ops_2020[i] * pa_2020[i] for i in range(len(ops_2020))]) / sum(pa_2020)
-
-    wOPS /= sum(pa_2019) + sum(pa_2020)
-    '''
+ 
+    wOPS = wOPS_2019 * 1 + wOPS_2020 * 0
     
     return(wOPS)
 

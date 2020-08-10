@@ -112,7 +112,9 @@ def simulateGame():
         print("No lineup available.")
     else:
         away_RG = runPrediction.getPredictedRG(away_selected, away_names, home_selected, home_pitcher)
+        print(away_RG)
         home_RG = runPrediction.getPredictedRG(home_selected, home_names, away_selected, away_pitcher)
+        print(home_RG)
 
     away_win_prob, home_win_prob = simulate.simulateMatchup(away_RG, home_RG, 0) 
     away_ML, home_ML = convertToML(away_win_prob), convertToML(home_win_prob)
