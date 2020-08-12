@@ -7,8 +7,8 @@ import pandas as pd
 
 name_to_abbrev = {'arizonadiamondbacks': 'ARI', 'atlantabraves': 'ATL', 'baltimoreorioles': 'BAL', 'bostonredsox': 'BOS', 'chicagowhitesox': 'CHW', 'chicagocubs': 'CHC', 'cincinnatireds': 'CIN', 'clevelandindians': 'CLE', 'coloradorockies': 'COL', 'detroittigers': 'DET', 'houstonastros': 'HOU', 'kansascityroyals': 'KCR','losangelesangels': 'LAA', 'losangelesdodgers': 'LAD','miamimarlins': 'MIA', 'milwaukeebrewers': 'MIL', 'minnesotatwins': 'MIN', 'newyorkyankees': 'NYY', 'newyorkmets': 'NYM','oaklandathletics': 'OAK', 'philadelphiaphillies': 'PHI', 'pittsburghpirates': 'PIT','sandiegopadres': 'SDP', 'sanfranciscogiants': 'SFG','seattlemariners': 'SEA', 'st.louiscardinals': 'STL', 'tampabayrays': 'TBR', 'texasrangers': 'TEX', 'torontobluejays': 'TOR', 'washingtonnationals': 'WSN'}
 league_OPS = .707
-ratio_2019 = 1
-ratio_2020 = 0
+ratio_2019 = .7
+ratio_2020 = .3
 
 
 def getPredictedRG(team, lineup, oppTeam, oppPitcher):
@@ -22,18 +22,14 @@ def getPredictedRG(team, lineup, oppTeam, oppPitcher):
 
     lineup_OPS_2019, lineup_OPS_2020 = getLineupOPS(lineup, team)
 
-    print([lineup_OPS_2019, lineup_OPS_2020])
-
     ops_multiplier_2019 = lineup_OPS_2019 / team_OPS_2019
     ops_multiplier_2020 = lineup_OPS_2020/ team_OPS_2020
 
-    predicted_RS_2019 = ops_multiplier_2019 * team_RG_2019 * ratio_2019
-    predicted_RS_2020 = ops_multiplier_2020 * team_RG_2020 * ratio_2020
-
-    print([predicted_RS_2019, predicted_RS_2020])
+    predicted_RS_2019 = ops_multiplier_2019 * team_RG_2019
+    predicted_RS_2020 = ops_multiplier_2020 * team_RG_2020
     
     predicted_RS = (predicted_RS_2019 * ops_multiplier_2019 * ratio_2019) + (predicted_RS_2020 * ops_multiplier_2020 * ratio_2020) 
-    print(predicted_RS)
+
     pitcher_data_2019 = json.load(open('data/mlb_2019_pitchers.json'))
     pitcher_data_2020 = get2020Pitcher(oppPitcher)
 
@@ -42,7 +38,7 @@ def getPredictedRG(team, lineup, oppTeam, oppPitcher):
         ips_2019 = float(int(x[2]) + ((x[2] - int(x[2])) * 3.33)) / x[3]
         era_fip_2019 = x[0] + x[1] / 2
     except:
-        x = [rg_data_2019[oppTeam][2] * 1.2, rg_data_2019[oppTeam][2] * 1.2, 5, 1]
+        x = [rg_data_2019[oppTeam][2] * 1.2, rg_data_2019[oppTeam][2] * 1.2, 4, 1]
         print("Unable to find 2019 data for {}. Using team data instead.".format(oppPitcher))
         ips_2019 = float(int(x[2]) + ((x[2] - int(x[2])) * 3.33)) / x[3]
         era_fip_2019 = x[0] + x[1] / 2
@@ -58,7 +54,7 @@ def getPredictedRG(team, lineup, oppTeam, oppPitcher):
             if(y[3] == y[4]):
                 ips_2020 = float(int(y[2]) + ((y[2] - int(y[2])) * 3.33)) / y[3]
             else:
-                ips_2020 = 5
+                ips_2020 = 3.33
             ips = ips_2019 * ratio_2019 + ips_2020 * ratio_2020
             era_fip = (era_fip_2019 * ratio_2019) + (era_fip_2020 * ratio_2020)
         except:
@@ -90,7 +86,10 @@ def getLineupOPS(lineup, team_name):
     hitters_2019 = json.load(open('data/hitters_2019.json'))
     hitters_2020 = get2020Hitters(team_name, lineup)
     teams_data_2019 = json.load(open('data/mlb_2019_teams.json'))
-    team_replacement_2020 = teams_data_2019[team_name][1] * .8
+    teams_data_2020 = json.load(open('data/mlb_2020_all.json'))
+    team_replacement_2019 = teams_data_2019[team_name][1] * .8
+    team_replacement_2020 = teams_data_2020['batting'][team_name]['OPS'] * .8 / league_OPS
+
 
     for i in range(len(lineup)):
         lineup[i] = lineup[i].strip()
@@ -110,17 +109,17 @@ def getLineupOPS(lineup, team_name):
             if(pa_2019[i] >= 450):
                 ops_2019.append(hitters_2019[lineup[i].strip()][1])
             elif(pa_2019[i] >= 300 and pa_2019[i] < 450):
-                ops_2019.append((hitters_2019[lineup[i].strip()][1] * 0.8) + (team_replacement_2020* 0.2))
+                ops_2019.append((hitters_2019[lineup[i].strip()][1] * 0.8) + (team_replacement_2019 * 0.2))
             elif(pa_2019[i] >= 100 and pa_2019[i] < 300):
-                ops_2019.append((hitters_2019[lineup[i].strip()][1] * 0.5) + (team_replacement_2020* 0.5))
+                ops_2019.append((hitters_2019[lineup[i].strip()][1] * 0.5) + (team_replacement_2019 * 0.5))
             else:
-                ops_2019.append((hitters_2019[lineup[i].strip()][1] * 0.25) + (team_replacemen_2020 * 0.75))
+                ops_2019.append((hitters_2019[lineup[i].strip()][1] * 0.25) + (team_replacement_2019 * 0.75))
         except:
             ops_2019.append(team_replacement_2019)
         try:
             ops_2020.append(hitters_2020[lineup[i].strip()][1])
         except:
-            ops_2020.append(team_replacement)
+            ops_2020.append(team_replacement_2020)
 
     wOPS_2019 = np.mean(ops_2019)
     wOPS_2020 = np.mean(ops_2020)
