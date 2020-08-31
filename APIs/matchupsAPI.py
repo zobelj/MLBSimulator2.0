@@ -7,7 +7,7 @@ def getMatchups(date):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
-    teams = soup(class_='sc-pRTZB fmZQoe')
+    teams = soup(class_="sc-pbIaG fCAMpt")
 
     for i in range(len(teams)):
         teams[i] = teams[i].get_text().lower()
